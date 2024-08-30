@@ -1,6 +1,10 @@
 # transactiondemo2
 
-You'll need to update app_config with your own urls/keys.
+getting set up:
+
+- You'll need to update app_config with your own urls/keys.
+- run "pub get" to download dependencies
+- run "dart run build_runner watch -d" to generate any files if they are missing (though I think they were included in the repository so you may not have to.)
 
 Here are the definitions of the 2 tables in supabase
 
