@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:transactiondemo/models/workout.dart';
+import 'package:transactiondemo/models/workout_item.dart';
 import 'package:transactiondemo/powersync.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,6 +29,11 @@ class PowersyncWorkoutRepository {
       phaseId: null,
       templateId: null,
     );
+    final wi = WorkoutItem(
+        id: const Uuid().v4().toString(),
+        index: 0,
+        workoutId: w.id,
+        name: 'testing item');
 
     // TODO: uncomment this code, and comment the transaction code, and you'll see it work as expected when not a transaction
     // await db.execute(
@@ -80,10 +86,10 @@ class PowersyncWorkoutRepository {
       //TODO: To keep this minimal, I only included one extra statement. The rest are lacking the schema / models to make them work.
       // they are left here commented for reference on what I'm trying to do.
 
-      // await txn.executeBatch(
-      //   'INSERT OR REPLACE INTO workout_items (id, "index", name, selected_index, circuit_node, tracking_fields, weight_unit, progression_name, workout_id) VALUES (?,?,?,?,?,?,?,?,?) RETURNING *',
-      //   uItems,
-      // );
+      await txn.executeBatch(
+        'INSERT OR REPLACE INTO workout_items (id, "index", name, workout_id) VALUES (?,?,?,?) RETURNING *',
+        [wi.toSqlParams()],
+      );
 
       await txn.executeBatch(
         'DELETE FROM workout_items WHERE id = ? RETURNING *',

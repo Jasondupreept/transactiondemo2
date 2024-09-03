@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:transactiondemo/auth/auth_checker.dart';
@@ -25,40 +27,69 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  List<Workout> _workouts = [];
+  StreamSubscription? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    final stream =
+        PowersyncWorkoutRepository.streamWorkouts(WorkoutState.template);
+    _subscription = stream.listen((workouts) {
+      setState(() {
+        _workouts = workouts;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
-        actions: [
-          FilledButton.icon(
-            onPressed: () => PowersyncWorkoutRepository.updateWorkout(),
-            label: const Text('New Workout'),
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
-      body: StreamBuilder(
-          stream:
-              PowersyncWorkoutRepository.streamWorkouts(WorkoutState.template),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  return Text(snapshot.data![index].name);
-                },
-              );
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
-          }),
-    );
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
+          actions: [
+            FilledButton.icon(
+              onPressed: () => PowersyncWorkoutRepository.updateWorkout(),
+              label: const Text('New Workout'),
+              icon: const Icon(Icons.add),
+            ),
+          ],
+        ),
+        body: ListView(
+          children: _workouts.map((wo) => Text(wo.name)).toList(),
+        )
+        // body: StreamBuilder(
+        //     stream:
+        //         PowersyncWorkoutRepository.streamWorkouts(WorkoutState.template),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.hasData) {
+        //         return ListView.builder(
+        //           itemCount: snapshot.data!.length,
+        //           itemBuilder: (context, index) {
+        //             return Text(snapshot.data![index].name);
+        //           },
+        //         );
+        //       } else {
+        //         return const Center(child: CircularProgressIndicator());
+        //       }
+        //     }),
+        );
   }
 }
